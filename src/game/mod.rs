@@ -1,12 +1,34 @@
+use super::board::Board;
 pub struct Game {
-    config: Config
+    config: Config,
+    board: Board,
 }
 
 
 impl Game {
     pub fn start(&mut self) {
         use super::interface;
-        interface::ask_and_run_command(&mut self.config);
+        interface::ask_and_run_command(&mut self.config, &mut self.board);
+    }
+
+    pub fn text_print_board(board: &Board, config: &Config) {
+        let spaces = " ".repeat(2);
+        for (i, player) in board.board.iter().enumerate() {
+           let cell: &str = match player {
+                Some(Players::Player1) => config.players.0.piece.as_str(),
+                Some(Players::Player2) => config.players.1.piece.as_str(),
+                None => config.empty_piece.as_str(),
+           };
+
+
+           if (i + 1) % 3 == 0 {
+               println!("{}", cell);
+           } else if i % 3 == 0 {
+               print!("{}{}|", spaces, cell);
+           } else {
+               print!("{}|", cell);
+           }
+        }
     }
 }
 
@@ -14,6 +36,7 @@ impl Default for Game {
     fn default() -> Game {
         Game{
             config: Default::default(),
+            board: Default::default(),
         }
     }
 }
@@ -89,6 +112,7 @@ pub struct Player {
     pub piece: String,
 }
 
+#[derive(Clone, Copy, PartialEq, Debug)]
 pub enum Players {
     Player1,
     Player2,
@@ -119,3 +143,5 @@ impl fmt::Display for Players {
     }
 }
 
+#[cfg(test)]
+mod tests;

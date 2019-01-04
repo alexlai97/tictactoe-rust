@@ -1,8 +1,8 @@
 Implemented
 [X] AI (stupid)
+[X] interactive interface stdin stdout
 
 TODO
-[X] interactive interface stdin stdout
 [ ] term color
 
 Might not do

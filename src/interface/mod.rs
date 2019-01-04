@@ -56,6 +56,7 @@ static PIECE_TABLE: &'static [(&str, &str, &str)] = &[
 
 
 use super::game::Config;
+use super::board::Board;
 
 fn print_table(table: &[(&str, &str, &str)], num_of_spaces: usize) {
     let spaces = " ".repeat(num_of_spaces);
@@ -83,6 +84,35 @@ fn ask_for_user_name() -> String {
     input.to_string()
 }
 
+fn ask_user_move_input() -> Result<(usize, usize), &'static str> {
+    use std::io;
+    println!("Where you want to put your piece: Ex: 0, 2 or (q)uit");
+    let mut input = String::new();
+    io::stdin()
+        .read_line(&mut input)
+        .expect("Could not read line when asking for user input");
+
+    let input = input.trim();
+
+    if input == "q" || input == "quit" {
+        return Err("Quit");
+    }
+
+    let string_pool: Vec<&str> = input.split(|c| c == ' ' || c == ',').collect();
+
+    let nums: Vec<usize> = string_pool
+        .iter()
+        .filter(|num| num.parse::<usize>().is_ok())
+        .map(|num| num.parse::<usize>().unwrap())
+        .collect();
+
+    if nums.len() != 2 {
+        return Err("Could not parse input to numbers");
+    }
+    Ok((nums[0], nums[1]))
+}
+
+
 fn ask_for_user_string(table: &'static [(&'static str, &str, &str)]) -> Result<String, &'static str> {
     use std::io;
     let mut input = String::new();
@@ -103,26 +133,25 @@ fn ask_for_user_string(table: &'static [(&'static str, &str, &str)]) -> Result<S
     }
 }
 
-pub fn ask_and_run_command(mut config: &mut Config) {
+pub fn ask_and_run_command(mut config: &mut Config, mut board: &mut Board) {
     let mut cache = CommandCache::new();
     let mut command: Commands = Commands::Quit;
     loop {
-        cache.print_current_page(config);
+        cache.print_current_page(config, board);
 
         match cache.current_page {
-             Page::ConfigEmptyPiece | Page::ConfigBoardSize | Page::EnterUserName1 | Page::EnterUserName2 | Page::EnterUserPiece1 | Page::EnterUserPiece2 => {
+             Page::ConfigEmptyPiece | Page::ConfigBoardSize | Page::EnterUserName1 | Page::EnterUserName2 | Page::EnterUserPiece1 | Page::EnterUserPiece2 | Page::Playing =>  {
              },
              _  => {
                  command = Commands::keep_asking_for_valid_user_command();
 
-                 eprintln!("DEBUGGING: got user command, which is {:?}", command);
                  if command == Commands::Quit { break; }
              },
         }
 
         println!("{}", "=".repeat(51));
 
-        cache.execute_command_and_update_command_cache(command, &mut config)
+        cache.execute_command_and_update_command_cache(command, &mut config, &mut board)
             .unwrap_or_else(|err| {
                 println!("{}", err);
             });
@@ -142,6 +171,7 @@ enum Page {
     EnterUserName2,
     EnterUserPiece1,
     EnterUserPiece2,
+    Winner,
 }
 
 #[derive(PartialEq, Debug, Copy, Clone)]
@@ -156,6 +186,8 @@ enum Commands {
     Command4,
     Command5,
     Command6,
+    Restart,
+    FrontPage,
 }
 
 impl Commands {
@@ -172,6 +204,10 @@ impl Commands {
             Some(Commands::Start)
         } else if input == "q" || input == "quit" {
             Some(Commands::Quit)
+        } else if input == "r" || input == "restart" {
+            Some(Commands::Restart)
+        } else if input == "f" || input == "frontpage" {
+            Some(Commands::FrontPage)
         } else if input == "b" || input == "back" || flag {
             Some(Commands::Back)
         } else if input == "1" {
@@ -216,6 +252,8 @@ impl fmt::Display for Commands {
                 Commands::Back => "(b)ack/[Enter]",
                 Commands::Start => "(s)tart",
                 Commands::Quit => "(q)uit",
+                Commands::Restart => "(r)estart",
+                Commands::FrontPage => "(f)rontpage",
                 Commands::Command1 => "(1)",
                 Commands::Command2 => "(2)", 
                 Commands::Command3 => "(3)", 
@@ -227,9 +265,12 @@ impl fmt::Display for Commands {
     }
 }
 
+use super::game::Players;
 struct CommandCache {
     current_page: Page,
     available_commands: Vec<Commands>,
+    current_player: Players,
+    winner: Option<Players>,
 }
 
 impl CommandCache {
@@ -237,10 +278,20 @@ impl CommandCache {
         CommandCache {
             current_page: Page::FrontPage,
             available_commands: FRONT_PAGE_AVAILABLE_COMMANDS.to_vec(),
+            current_player: Players::Player1,
+            winner: None,
         }
     }
 
-    fn print_current_page(&self, config: & Config) {
+    fn change_player(&mut self) {
+        if self.current_player == Players::Player1 {
+            self.current_player = Players::Player2;
+        } else {
+            self.current_player = Players::Player1;
+        }
+    }
+
+    fn print_current_page(&self, config: & Config, board: & Board) {
         match self.current_page {
             Page::FrontPage => { 
                 print!("{}
@@ -306,11 +357,24 @@ Or choose one of the following:
                 print_table(EMPTY_PIECE_TABLE, 2);
             },
             Page::Playing => {
+                super::game::Game::text_print_board(board, config);
+            },
+            Page::Winner => {
+                super::game::Game::text_print_board(board, config);
+                let winner = self.winner.unwrap();
+                let name = if Players::Player1 == winner {
+                    config.players.0.name.as_str()
+                } else {
+                    config.players.1.name.as_str()
+                };
+                println!("The winner is {}", name);
+                board.print_matches(2);
+                self.print_available_commands();
             },
         }
     }
 
-    fn execute_command_and_update_command_cache(&mut self, command: Commands, config: &mut Config) -> Result<(), &str> {
+    fn execute_command_and_update_command_cache(&mut self, command: Commands, config: &mut Config, board: &mut Board) -> Result<(), &str> {
         use super::game::{Mode, Players};
         match self.current_page {
             Page::FrontPage => {
@@ -322,7 +386,7 @@ Or choose one of the following:
                     },
                     Commands::Start => {
                         self.current_page = Page::Playing; 
-                        // FIXME: available commands
+                        self.available_commands = vec![];
                         Ok(())
                     },
                     Commands::Command1 => {
@@ -374,7 +438,7 @@ Or choose one of the following:
                     },
                     Commands::Start => {
                         self.current_page = Page::Playing; 
-                        // FIXME: available commands
+                        self.available_commands = vec![];
                         Ok(())
                     },
                     Commands::Quit => { panic!("Should not reach here"); },
@@ -483,12 +547,14 @@ Or choose one of the following:
                         self.current_page = Page::FrontPage; 
                         self.available_commands = FRONT_PAGE_AVAILABLE_COMMANDS.to_vec();
                         config.first = Players::Player1;
+                        self.current_player = Players::Player1;
                         Ok(())
                     },
                     Commands::Command2 => {
                         self.current_page = Page::FrontPage; 
                         self.available_commands = FRONT_PAGE_AVAILABLE_COMMANDS.to_vec();
                         config.first = Players::Player2;
+                        self.current_player = Players::Player2;
                         Ok(())
                     },
                     Commands::Back => {
@@ -518,7 +584,59 @@ Or choose one of the following:
                 }
             },
             Page::Playing => {
+                let mut coordinates: (usize, usize);
+                loop {
+                    let result = ask_user_move_input();
+                    if result.is_ok() {
+                        coordinates = result.unwrap();
+                        let tmp_result = board.set_coordinate(coordinates.0, coordinates.1, self.current_player);
+                        if tmp_result.is_err() {
+                            println!("{}", tmp_result.unwrap_err());
+                            continue;
+                        } else {
+                            break;
+                        }
+                    } else {
+                        let err = result.unwrap_err();
+                        println!("{}", err);
+                        if err == "Quit" {
+                            std::process::exit(0);
+                        }
+                        continue;
+                    }
+                }
+
+                board.update_matches();
+                let player = board.has_match_line();
+                if player.is_some() {
+                    self.winner = player;
+                    self.current_page = Page::Winner;
+                    self.available_commands = vec![
+                        Commands::Restart, 
+                        Commands::FrontPage,
+                        Commands::Quit
+                    ];
+                } else {
+                    self.change_player();
+                }
                 Ok(())
+            },
+            Page::Winner => {
+                match command {
+                    Commands::Restart => {
+                        self.current_page = Page::Playing;
+                        self.available_commands = vec![];
+                        board.clear();
+                        Ok(())
+                    },
+                    Commands::FrontPage => {
+                        self.current_page = Page::FrontPage; 
+                        self.available_commands = FRONT_PAGE_AVAILABLE_COMMANDS.to_vec();
+                        Ok(())
+                    },
+                    Commands::Quit => { panic!("Should not reach here"); },
+                    _ => { Err("Does not support this command on this page") },
+                }
             },
         }
     }

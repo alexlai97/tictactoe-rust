@@ -113,8 +113,6 @@ Or choose one of the following:
 
 Where do you what to put your piece, User1/Alex ?
 
-Available command:
-(h)elp (r)estart (q)uit
 ```
 ### help
 ```
