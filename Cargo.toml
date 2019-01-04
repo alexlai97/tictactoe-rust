@@ -4,6 +4,9 @@ version = "0.1.3"
 authors = ["Alex Lai <x7lai@uwaterloo.ca>"]
 edition = "2018"
 description = "Tictactoe written in rust"
+repository = "https://github.com/alexlai97/tictactoe-rust"
+readme = "README.md"
+license = "MIT"
 
 [dependencies]
 clap = "2.32.0"
