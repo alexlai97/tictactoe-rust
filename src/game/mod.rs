@@ -46,7 +46,6 @@ impl Default for Game {
     }
 }
 
-
 pub struct Config {
     pub mode: Mode,
     pub players: (Player, Player),
@@ -54,7 +53,6 @@ pub struct Config {
     pub empty_piece: String,
     pub ai_smartness: SmartLevel,
 }
-
 
 impl Config {
     pub fn new(mode: Mode) -> Config {
@@ -168,10 +166,10 @@ pub enum Players {
 
 #[derive(Debug, Clone, Copy)]
 pub enum SmartLevel {
-   Kindergarden,
-   Elementary,
-   Graduate,
-   God,
+    Kindergarden,
+    Elementary,
+    Graduate,
+    God,
 }
 
 use std::fmt;

@@ -631,25 +631,25 @@ Or choose one of the following:
                         self.current_page = Page::FrontPage;
                         self.available_commands = FRONT_PAGE_AVAILABLE_COMMANDS.to_vec();
                         Ok(())
-                    },
+                    }
                     Commands::Command2 => {
                         config.ai_smartness = SmartLevel::Elementary;
                         self.current_page = Page::FrontPage;
                         self.available_commands = FRONT_PAGE_AVAILABLE_COMMANDS.to_vec();
                         Ok(())
-                    },
+                    }
                     Commands::Command3 => {
                         config.ai_smartness = SmartLevel::Graduate;
                         self.current_page = Page::FrontPage;
                         self.available_commands = FRONT_PAGE_AVAILABLE_COMMANDS.to_vec();
                         Ok(())
-                    },
+                    }
                     Commands::Command4 => {
                         config.ai_smartness = SmartLevel::God;
                         self.current_page = Page::FrontPage;
                         self.available_commands = FRONT_PAGE_AVAILABLE_COMMANDS.to_vec();
                         Ok(())
-                    },
+                    }
                     Commands::Back => {
                         self.current_page = Page::FrontPage;
                         self.available_commands = FRONT_PAGE_AVAILABLE_COMMANDS.to_vec();
@@ -677,7 +677,8 @@ Or choose one of the following:
                 let mut coordinates: (usize, usize);
                 use super::ai;
                 if self.current_player == Players::Player1 && config.players.0.is_ai {
-                    let coordinates = ai::Ai::ask_ai_move_input(board, self.current_player, config.ai_smartness);
+                    let coordinates =
+                        ai::Ai::ask_ai_move_input(board, self.current_player, config.ai_smartness);
                     println!(
                         "{}'s input is ({}, {})",
                         config.players.0.name, coordinates.0, coordinates.1
@@ -686,7 +687,8 @@ Or choose one of the following:
                         .set_coordinate(coordinates.0, coordinates.1, self.current_player)
                         .unwrap();
                 } else if self.current_player == Players::Player2 && config.players.1.is_ai {
-                    let coordinates = ai::Ai::ask_ai_move_input(board, self.current_player, config.ai_smartness);
+                    let coordinates =
+                        ai::Ai::ask_ai_move_input(board, self.current_player, config.ai_smartness);
                     println!(
                         "{}'s input is ({}, {})",
                         config.players.1.name, coordinates.0, coordinates.1
