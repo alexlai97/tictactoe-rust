@@ -5,11 +5,11 @@ Implemented
 [x] enable PVC
 [x] enable CVC
 [x] term color
+[x] AI (elementary)
+[x] command line choose mode
 
 TODO
-[ ] command line arguments
 
 Might not do
-[ ] AI (clever)
 [ ] ncurses
 [ ] machine learning

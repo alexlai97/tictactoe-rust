@@ -143,7 +143,6 @@ pub fn ask_and_run_command(mut config: &mut Config, mut board: &mut Board) {
 
         match cache.current_page {
             Page::ConfigEmptyPiece
-            | Page::ConfigBoardSize
             | Page::EnterUserName1
             | Page::EnterUserName2
             | Page::EnterUserPiece1
@@ -177,7 +176,7 @@ enum Page {
     ConfigMode,
     ConfigPlayer,
     ConfigFirst,
-    ConfigBoardSize,
+    ConfigAiSmartness,
     ConfigEmptyPiece,
     EnterUserName1,
     EnterUserName2,
@@ -367,11 +366,15 @@ Current configuration:
                 );
                 self.print_available_commands();
             }
-            Page::ConfigBoardSize => {
+            Page::ConfigAiSmartness => {
                 println!(
-                    "Only small is available now.
+                    "Choose the smartness level of Ai.
 
-back to front page."
+  [1] Kindergarden (random choose where is empty)
+  [2] Elementary   (get match line if it can and step in your match line)
+  [3] Graduate     (as smart as elementary)
+  [4] God          (as smart as elementary)
+"
                 );
             }
             Page::ConfigEmptyPiece => {
@@ -450,8 +453,15 @@ Or choose one of the following:
                     Ok(())
                 }
                 Commands::Command5 => {
-                    self.current_page = Page::ConfigBoardSize;
-                    self.available_commands = vec![];
+                    self.current_page = Page::ConfigAiSmartness;
+                    self.available_commands = vec![
+                        Commands::Command1,
+                        Commands::Command2,
+                        Commands::Command3,
+                        Commands::Command4,
+                        Commands::Back,
+                        Commands::Quit,
+                    ];
                     Ok(())
                 }
                 Commands::Command6 => {
@@ -613,10 +623,43 @@ Or choose one of the following:
                 }
                 _ => Err("Does not support this command on this page"),
             },
-            Page::ConfigBoardSize => {
-                self.current_page = Page::FrontPage;
-                self.available_commands = FRONT_PAGE_AVAILABLE_COMMANDS.to_vec();
-                Ok(())
+            Page::ConfigAiSmartness => {
+                use super::game::SmartLevel;
+                match command {
+                    Commands::Command1 => {
+                        config.ai_smartness = SmartLevel::Kindergarden;
+                        self.current_page = Page::FrontPage;
+                        self.available_commands = FRONT_PAGE_AVAILABLE_COMMANDS.to_vec();
+                        Ok(())
+                    },
+                    Commands::Command2 => {
+                        config.ai_smartness = SmartLevel::Elementary;
+                        self.current_page = Page::FrontPage;
+                        self.available_commands = FRONT_PAGE_AVAILABLE_COMMANDS.to_vec();
+                        Ok(())
+                    },
+                    Commands::Command3 => {
+                        config.ai_smartness = SmartLevel::Graduate;
+                        self.current_page = Page::FrontPage;
+                        self.available_commands = FRONT_PAGE_AVAILABLE_COMMANDS.to_vec();
+                        Ok(())
+                    },
+                    Commands::Command4 => {
+                        config.ai_smartness = SmartLevel::God;
+                        self.current_page = Page::FrontPage;
+                        self.available_commands = FRONT_PAGE_AVAILABLE_COMMANDS.to_vec();
+                        Ok(())
+                    },
+                    Commands::Back => {
+                        self.current_page = Page::FrontPage;
+                        self.available_commands = FRONT_PAGE_AVAILABLE_COMMANDS.to_vec();
+                        Ok(())
+                    }
+                    Commands::Quit => {
+                        panic!("Should not reach here");
+                    }
+                    _ => Err("Does not support this command on this page"),
+                }
             }
             Page::ConfigEmptyPiece => {
                 let result = ask_for_user_string(EMPTY_PIECE_TABLE);
@@ -634,7 +677,7 @@ Or choose one of the following:
                 let mut coordinates: (usize, usize);
                 use super::ai;
                 if self.current_player == Players::Player1 && config.players.0.is_ai {
-                    let coordinates = ai::Ai::ask_ai_move_input(board, self.current_player);
+                    let coordinates = ai::Ai::ask_ai_move_input(board, self.current_player, config.ai_smartness);
                     println!(
                         "{}'s input is ({}, {})",
                         config.players.0.name, coordinates.0, coordinates.1
@@ -643,7 +686,7 @@ Or choose one of the following:
                         .set_coordinate(coordinates.0, coordinates.1, self.current_player)
                         .unwrap();
                 } else if self.current_player == Players::Player2 && config.players.1.is_ai {
-                    let coordinates = ai::Ai::ask_ai_move_input(board, self.current_player);
+                    let coordinates = ai::Ai::ask_ai_move_input(board, self.current_player, config.ai_smartness);
                     println!(
                         "{}'s input is ({}, {})",
                         config.players.1.name, coordinates.0, coordinates.1

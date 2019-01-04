@@ -37,15 +37,24 @@ impl Game {
     }
 }
 
-use super::board::BoardSize;
+impl Default for Game {
+    fn default() -> Game {
+        Game {
+            config: Config::new(Mode::PVC),
+            board: Default::default(),
+        }
+    }
+}
+
 
 pub struct Config {
     pub mode: Mode,
     pub players: (Player, Player),
     pub first: Players,
-    board_size: BoardSize,
     pub empty_piece: String,
+    pub ai_smartness: SmartLevel,
 }
+
 
 impl Config {
     pub fn new(mode: Mode) -> Config {
@@ -65,8 +74,8 @@ impl Config {
                     },
                 ),
                 first: Players::Player1,
-                board_size: BoardSize::Small,
                 empty_piece: String::from("."),
+                ai_smartness: SmartLevel::Elementary,
             },
             Mode::PVP => Config {
                 mode: Mode::PVP,
@@ -83,8 +92,8 @@ impl Config {
                     },
                 ),
                 first: Players::Player1,
-                board_size: BoardSize::Small,
                 empty_piece: String::from("."),
+                ai_smartness: SmartLevel::Elementary,
             },
             Mode::CVC => Config {
                 mode: Mode::CVC,
@@ -101,8 +110,8 @@ impl Config {
                     },
                 ),
                 first: Players::Player1,
-                board_size: BoardSize::Small,
                 empty_piece: String::from("."),
+                ai_smartness: SmartLevel::Elementary,
             },
         }
     }
@@ -126,7 +135,7 @@ impl Config {
             prefixs[2], self.players.1.name, self.players.1.piece
         );
         println!("{}Whose turn first: {}", prefixs[3], self.first);
-        println!("{}Board size: {}", prefixs[4], self.board_size);
+        println!("{}Ai smartness Level: {}", prefixs[4], self.ai_smartness);
         println!("{}Empty piece: \"{}\"", prefixs[5], self.empty_piece);
     }
 
@@ -157,6 +166,14 @@ pub enum Players {
     Player2,
 }
 
+#[derive(Debug, Clone, Copy)]
+pub enum SmartLevel {
+   Kindergarden,
+   Elementary,
+   Graduate,
+   God,
+}
+
 use std::fmt;
 impl fmt::Display for Mode {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
@@ -167,6 +184,21 @@ impl fmt::Display for Mode {
                 Mode::PVP => "PVP",
                 Mode::PVC => "PVC",
                 Mode::CVC => "CVC",
+            }
+        )
+    }
+}
+
+impl fmt::Display for SmartLevel {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(
+            f,
+            "{}",
+            match &self {
+                SmartLevel::Kindergarden => "Kindergarden",
+                SmartLevel::Elementary => "Elementary",
+                SmartLevel::Graduate => "Graduate",
+                SmartLevel::God => "God",
             }
         )
     }
