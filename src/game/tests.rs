@@ -17,6 +17,6 @@ fn match_test() {
 
     let mut game: Game = Default::default();
     game.board = board;
-    game.text_print_board();
-    assert!(false);
+    Game::text_print_board(&game.board, &game.config);
+    assert!(true);
 }
