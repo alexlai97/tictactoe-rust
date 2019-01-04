@@ -1,0 +1,8 @@
+[package]
+name = "tictactoe-rust"
+version = "0.1.0"
+authors = ["Alex Lai <x7lai@uwaterloo.ca>"]
+edition = "2018"
+
+[dependencies]
+clap = "2.32.0"
