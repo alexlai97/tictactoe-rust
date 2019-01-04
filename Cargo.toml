@@ -3,6 +3,7 @@ name = "tictactoe-rust"
 version = "0.1.3"
 authors = ["Alex Lai <x7lai@uwaterloo.ca>"]
 edition = "2018"
+description = "Tictactoe written in rust"
 
 [dependencies]
 clap = "2.32.0"
