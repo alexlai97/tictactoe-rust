@@ -1,6 +1,6 @@
 [package]
 name = "tictactoe-rust"
-version = "0.1.3"
+version = "0.1.4"
 authors = ["Alex Lai <x7lai@uwaterloo.ca>"]
 edition = "2018"
 description = "Tictactoe written in rust"
