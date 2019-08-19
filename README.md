@@ -1,4 +1,5 @@
 # tictactoe-rust
+![Alt text](./tictactoe.png)
 
 ## Arch user
 ```
