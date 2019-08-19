@@ -4,6 +4,7 @@ use clap::{App, Arg};
 
 use tictactoe_rust::game::{Game, Mode};
 
+
 fn main() {
     let matches = App::new("tictactoe-rust")
         .version(crate_version!())

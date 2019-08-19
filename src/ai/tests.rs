@@ -1,4 +1,4 @@
-use super::super::game::Players;
+use super::super::game::{Players, SmartLevel};
 use super::*;
 #[test]
 fn ai_generate_random_valid_tuple_test() {
@@ -13,7 +13,7 @@ fn ai_generate_random_valid_tuple_test() {
     //board.set_coordinate(1, 2, Players::Player1).unwrap();
     board.set_coordinate(2, 2, Players::Player1).unwrap();
 
-    let moves = Ai::ask_ai_move_input(&board, Players::Player1);
+    let moves = Ai::ask_ai_move_input(&board, Players::Player1, SmartLevel::Elementary);
     println!("ai's move is ({}, {})", moves.0, moves.1);
     //assert!(board.is_full());
     assert!(true);
